@@ -28,7 +28,7 @@ sudo pkg install qqwing
 I know, I know. qqwing has a library. I just didn't realise that before I already wrote the function for generating sudoku files. By the way, if you can't find qqwing in your package manager's repositories, you can just download the source code from that link up top and compile it. They have their own instructions for that.
 
 ## Instructions
-You probably didn't come here for all the above jargon, so I'll just show you how to use the compiled program.
+You probably don't wanna read anymore half-useless jargon, so I'll just show you how to use the program.
 
 ### Generating and loading sudomaps
 Now, you can't just start playing right after you've compiled this, you'll have to create a sudomap first (more about sudomaps in the `About that file format` section.<br>
