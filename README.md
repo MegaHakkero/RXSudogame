@@ -36,7 +36,7 @@ To generate a sudomap, you can type
 ```sh
 rxsudogame generate <count> <output name>
 ```
-Just replace `<count>` with the number of games you want to include in the output file and replace `<output name>` with file name of your choice. Just be sure not to type in an existing file's name, this program will overwrite it without prompting you. I was too lazy to add a check for that, lol<br>
+Just replace `<count>` with the number of games you want to include in the output file and replace `<output name>` with a file name of your choice. Just be sure not to type in an existing file's name, this program will overwrite it without prompting you. I was too lazy to add a check for that, lol<br>
 So, now that you have a game generated, you can load it and start playing. Just type in
 ```sh
 rxsudogame load <input file>
