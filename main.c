@@ -97,6 +97,7 @@ uint8_t __gridxy2idx(uint8_t x, uint8_t y) {
 
 void __gridmove(uint8_t x, uint8_t y) {
 	move(__gypos2abs(y), __gxpos2abs(x));
+	refresh();
 }
 
 void *thr_timer(void *arg) {
@@ -122,12 +123,13 @@ void *thr_timer(void *arg) {
 	}
 	mvprintw(TIMER_CEN_Y, TIMER_CEN_X, "%02hhu:%02hhu:%02hhu", timeseg.t_hours, timeseg.t_mins, timeseg.t_secs);
 	refresh();
+	__gridmove(sudo->s_xpos, sudo->s_ypos);
 	while (1) {
 		if (sudo->s_game->s_solvestatus) {
 			sleep(1); // breakpoint for pthread_cancel
 			continue;
 		}
-		sudo->s_game->s_time++; // pointers are great
+		sudo->s_game->s_time++;
 		timeseg.t_secs++;
 		if (timeseg.t_secs >= 60) {
 			timeseg.t_mins++;
@@ -139,8 +141,8 @@ void *thr_timer(void *arg) {
 		}
 		pthread_mutex_lock(&TIMER_MUTEX);
 		mvprintw(TIMER_CEN_Y, TIMER_CEN_X, "%02hhu:%02hhu:%02hhu", timeseg.t_hours, timeseg.t_mins, timeseg.t_secs);
-		__gridmove(sudo->s_xpos, sudo->s_ypos);
 		refresh();
+		__gridmove(sudo->s_xpos, sudo->s_ypos);
 		pthread_mutex_unlock(&TIMER_MUTEX);
 		sleep(1);
 	}
@@ -171,6 +173,7 @@ void *thr_check(void *arg) {
 			pthread_mutex_unlock(&CHECK_MUTEX);
 		}
 	}
+	__gridmove(sudo->s_xpos, sudo->s_ypos);
 	sleep(2);
 	for (pos_y = 0; pos_y < 9; pos_y++) {
 		for (pos_x = 0; pos_x < 9; pos_x++) {
@@ -553,7 +556,7 @@ int main(int argc, char **argv) {
 	sudoprint(&tracker);
 	mvprintw(BOX_CEN_Y + 19, BOX_CEN_X, "Game 1/%hu", map.s_count);
 	if (tracker.s_game->s_solvestatus) {
-		mvprintw(BOX_CEN_Y + 20, BOX_CEN_X, "Solved");
+		mvprintw(BOX_CEN_Y + 20, BOX_CEN_X, "Solved    ");
 	} else mvprintw(BOX_CEN_Y + 20, BOX_CEN_X, "Not solved");
 	refresh();
 	TIMER_TID = 0;
@@ -565,6 +568,7 @@ int main(int argc, char **argv) {
 	while (1) {
 		int ch = getch();
 		if (isdigit(ch)) {
+			if (tracker.s_game->s_solvestatus) continue;
 			if (tracker.s_game->s_protmap[__gridxy2idx(tracker.s_xpos, tracker.s_ypos)]) continue;
 			tracker.s_game->s_data[__gridxy2idx(tracker.s_xpos, tracker.s_ypos)] = (uint8_t) (ch - 48);
 			if (ch != '0') {
@@ -572,15 +576,17 @@ int main(int argc, char **argv) {
 			} else __sudogridputch(tracker.s_xpos, tracker.s_ypos, ' ');
 			__gridmove(tracker.s_xpos, tracker.s_ypos);
 		} else if (ch == 'q') {
-			esave = sudogamesave(argv[2], tracker.s_game);
+			if (!tracker.s_game->s_solvestatus) esave = sudogamesave(argv[2], tracker.s_game);
 			break;
 		} else if (ch == 'c') {
+			if (tracker.s_game->s_solvestatus) continue;
 			if (!memcmp(tracker.s_game->s_data, tracker.s_game->s_solution, 81 * sizeof(uint8_t))) {
 				tracker.s_game->s_solvestatus = 1;
 				esave = sudogamesave(argv[2], tracker.s_game);
 				if (esave) break;
-				sudoprint(&tracker);
-				mvprintw(BOX_CEN_Y + 20, BOX_CEN_X, "Solved");
+				mvprintw(BOX_CEN_Y + 20, BOX_CEN_X, "Solved    ");
+				refresh();
+				__gridmove(tracker.s_xpos, tracker.s_ypos);
 			} else {
 				pthread_create(&CHECK_TID, 0, &thr_check, (void *) &tracker);
 				pthread_detach(CHECK_TID);
@@ -604,31 +610,33 @@ int main(int argc, char **argv) {
 		} else if (ch == KEY_RIGHT) {
 			if (tracker.s_index > map.s_count - 2) continue;
 			pthread_cancel(TIMER_TID);
-			esave = sudogamesave(argv[2], tracker.s_game);
+			if (!tracker.s_game->s_solvestatus) esave = sudogamesave(argv[2], tracker.s_game);
 			if (esave) break;
 			tracker.s_index++;
 			tracker.s_game = &(map.s_games[tracker.s_index]);
 			sudoprint(&tracker);
 			mvprintw(BOX_CEN_Y + 19, BOX_CEN_X, "Game %hu/%hu", tracker.s_index + 1, map.s_count);
 			if (tracker.s_game->s_solvestatus) {
-				mvprintw(BOX_CEN_Y + 20, BOX_CEN_X, "Solved");
+				mvprintw(BOX_CEN_Y + 20, BOX_CEN_X, "Solved    ");
 			} else mvprintw(BOX_CEN_Y + 20, BOX_CEN_X, "Not solved");
 			refresh();
+			__gridmove(tracker.s_xpos, tracker.s_ypos);
 			pthread_create(&TIMER_TID, 0, &thr_timer, (void *) &tracker);
 			pthread_detach(TIMER_TID);
 		} else if (ch == KEY_LEFT) {
 			if (tracker.s_index < 1) continue;
 			pthread_cancel(TIMER_TID);
-			esave = sudogamesave(argv[2], tracker.s_game);
+			if (!tracker.s_game->s_solvestatus) esave = sudogamesave(argv[2], tracker.s_game);
 			if (esave) break;
 			tracker.s_index--;
 			tracker.s_game = &(map.s_games[tracker.s_index]);
 			sudoprint(&tracker);
 			mvprintw(BOX_CEN_Y + 19, BOX_CEN_X, "Game %hu/%hu", tracker.s_index + 1, map.s_count);
 			if (tracker.s_game->s_solvestatus) {
-				mvprintw(BOX_CEN_Y + 20, BOX_CEN_X, "Solved");
+				mvprintw(BOX_CEN_Y + 20, BOX_CEN_X, "Solved    ");
 			} else mvprintw(BOX_CEN_Y + 20, BOX_CEN_X, "Not solved");
 			refresh();
+			__gridmove(tracker.s_xpos, tracker.s_ypos);
 			pthread_create(&TIMER_TID, 0, &thr_timer, (void *) &tracker);
 			pthread_detach(TIMER_TID);
 		}
