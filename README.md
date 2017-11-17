@@ -1,5 +1,5 @@
 # RXSudogame
-A shitty ncurses sudoku game + file format for UNIX systems
+A shitty ncurses sudoku game + file format for UNIX systems - drink game on how many times `refresh()` gets called in the code
 
 ## Why the fuck did I write this?
 I became really good at playing sudoku with my ages old Nokia brick phone (sudoku's actually the most entertaining game on it), so I started wanting to play it on the computer too. I didn't find any good enough implementations of it for terminals though, so I decided to write one myself. The issue I had with other implementations was a lack of any kind of leveling system, because on the implementation that my phone has there's 100 sudokus you can complete, which gives you a goal you can move toward. The code is horrible, but I like the result nonetheless.<br><br>
