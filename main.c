@@ -12,6 +12,8 @@
 
 #define SUDOSIGN "RXDSF"
 
+#define CP_WRONG 1
+
 typedef struct {
 	uint8_t *s_data;
 	uint8_t *s_solution;
@@ -166,7 +168,7 @@ void *thr_check(void *arg) {
 			__gridmove(pos_x, pos_y);
 			if (sudo->s_game->s_data[__gridxy2idx(pos_x, pos_y)] != sudo->s_game->s_solution[__gridxy2idx(pos_x, pos_y)]) {
 				hashmap[__gridxy2idx(pos_x, pos_y)] = 1;
-				chgat(1, A_REVERSE, 0, NULL);
+				chgat(1, A_NORMAL, CP_WRONG, NULL);
 				refresh();
 			}
 			pthread_mutex_unlock(&CHECK_MUTEX);
@@ -516,6 +518,8 @@ int main(int argc, char **argv) {
 		endwin();
 		return 1;
 	}
+	start_color();
+	init_pair(CP_WRONG, COLOR_BLACK, COLOR_RED);
 	BOX_CEN_X   = (TERM_MAX_X / 2) - (BOX_SCALE   / 2);
 	BOX_CEN_Y   = (TERM_MAX_Y / 2) - (BOX_SCALE   / 2);
 	GRID_CEN_X  = BOX_CEN_X + 1;
