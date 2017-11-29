@@ -123,7 +123,6 @@ void *thr_timer(void *arg) {
 
 	}
 	mvprintw(TIMER_CEN_Y, TIMER_CEN_X, "%02hhu:%02hhu:%02hhu", timeseg.t_hours, timeseg.t_mins, timeseg.t_secs);
-	refresh();
 	__gridmove(sudo->s_xpos, sudo->s_ypos);
 	while (1) {
 		if (sudo->s_game->s_solvestatus) {
@@ -142,7 +141,6 @@ void *thr_timer(void *arg) {
 		}
 		pthread_mutex_lock(&TIMER_MUTEX);
 		mvprintw(TIMER_CEN_Y, TIMER_CEN_X, "%02hhu:%02hhu:%02hhu", timeseg.t_hours, timeseg.t_mins, timeseg.t_secs);
-		refresh();
 		__gridmove(sudo->s_xpos, sudo->s_ypos);
 		pthread_mutex_unlock(&TIMER_MUTEX);
 		sleep(1);
@@ -588,7 +586,6 @@ int main(int argc, char **argv) {
 				esave = sudogamesave(argv[2], tracker.s_game);
 				if (esave) break;
 				mvprintw(BOX_CEN_Y + 20, BOX_CEN_X, "Solved    ");
-				refresh();
 				__gridmove(tracker.s_xpos, tracker.s_ypos);
 			} else {
 				pthread_create(&CHECK_TID, 0, &thr_check, (void *) &tracker);
@@ -622,7 +619,6 @@ int main(int argc, char **argv) {
 			if (tracker.s_game->s_solvestatus) {
 				mvprintw(BOX_CEN_Y + 20, BOX_CEN_X, "Solved    ");
 			} else mvprintw(BOX_CEN_Y + 20, BOX_CEN_X, "Not solved");
-			refresh();
 			__gridmove(tracker.s_xpos, tracker.s_ypos);
 			pthread_create(&TIMER_TID, 0, &thr_timer, (void *) &tracker);
 			pthread_detach(TIMER_TID);
@@ -638,7 +634,6 @@ int main(int argc, char **argv) {
 			if (tracker.s_game->s_solvestatus) {
 				mvprintw(BOX_CEN_Y + 20, BOX_CEN_X, "Solved    ");
 			} else mvprintw(BOX_CEN_Y + 20, BOX_CEN_X, "Not solved");
-			refresh();
 			__gridmove(tracker.s_xpos, tracker.s_ypos);
 			pthread_create(&TIMER_TID, 0, &thr_timer, (void *) &tracker);
 			pthread_detach(TIMER_TID);
