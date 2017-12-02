@@ -559,13 +559,12 @@ int main(int argc, char **argv) {
 	if (tracker.s_game->s_solvestatus) {
 		mvprintw(BOX_CEN_Y + 20, BOX_CEN_X, "Solved    ");
 	} else mvprintw(BOX_CEN_Y + 20, BOX_CEN_X, "Not solved");
-	refresh();
+	__gridmove(tracker.s_xpos, tracker.s_ypos);
 	TIMER_TID = 0;
 	CHECK_TID = 0;
 	uint8_t esave = 0;
 	pthread_create(&TIMER_TID, 0, &thr_timer, (void *) &tracker);
 	pthread_detach(TIMER_TID);
-	__gridmove(tracker.s_xpos, tracker.s_ypos);
 	while (1) {
 		int ch = getch();
 		if (isdigit(ch)) {
