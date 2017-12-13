@@ -101,6 +101,29 @@ void __gridmove(uint8_t x, uint8_t y) {
 	refresh();
 }
 
+void __draw_box(sudotracker *track) {
+	mvprintw(BOX_CEN_Y,      BOX_CEN_X, "%s", BOX_ROW_TOP);
+	mvprintw(BOX_CEN_Y + 1,  BOX_CEN_X, "%s", BOX_ROW_MID1);
+	mvprintw(BOX_CEN_Y + 2,  BOX_CEN_X, "%s", BOX_ROW_MID2);
+	mvprintw(BOX_CEN_Y + 3,  BOX_CEN_X, "%s", BOX_ROW_MID1);
+	mvprintw(BOX_CEN_Y + 4,  BOX_CEN_X, "%s", BOX_ROW_MID2);
+	mvprintw(BOX_CEN_Y + 5,  BOX_CEN_X, "%s", BOX_ROW_MID1);
+	mvprintw(BOX_CEN_Y + 6,  BOX_CEN_X, "%s", BOX_ROW_MID3);
+	mvprintw(BOX_CEN_Y + 7,  BOX_CEN_X, "%s", BOX_ROW_MID1);
+	mvprintw(BOX_CEN_Y + 8,  BOX_CEN_X, "%s", BOX_ROW_MID2);
+	mvprintw(BOX_CEN_Y + 9,  BOX_CEN_X, "%s", BOX_ROW_MID1);
+	mvprintw(BOX_CEN_Y + 10, BOX_CEN_X, "%s", BOX_ROW_MID2);
+	mvprintw(BOX_CEN_Y + 11, BOX_CEN_X, "%s", BOX_ROW_MID1);
+	mvprintw(BOX_CEN_Y + 12, BOX_CEN_X, "%s", BOX_ROW_MID3);
+	mvprintw(BOX_CEN_Y + 13, BOX_CEN_X, "%s", BOX_ROW_MID1);
+	mvprintw(BOX_CEN_Y + 14, BOX_CEN_X, "%s", BOX_ROW_MID2);
+	mvprintw(BOX_CEN_Y + 15, BOX_CEN_X, "%s", BOX_ROW_MID1);
+	mvprintw(BOX_CEN_Y + 16, BOX_CEN_X, "%s", BOX_ROW_MID2);
+	mvprintw(BOX_CEN_Y + 17, BOX_CEN_X, "%s", BOX_ROW_MID1);
+	mvprintw(BOX_CEN_Y + 18, BOX_CEN_X, "%s", BOX_ROW_BOT);
+	__gridmove(track->s_xpos, track->s_ypos);
+}
+
 void *thr_timer(void *arg) {
 	sudotracker *sudo = (sudotracker *) arg;
 	timer timeseg = { 0, 0, 0 };
@@ -329,7 +352,7 @@ uint8_t sudoload(char *inname, sudomap *ret) {
 	FILE *in = fopen(inname, "r");
 	if (!in) return 1; // input file fopen error "fopen(in, read)"
 	struct stat instat;
-	uint8_t statret = fstat(fileno(in), &instat);
+	int8_t statret = fstat(fileno(in), &instat);
 	if (statret < 0) {
 		fclose(in);
 		return 2; // input file fstat error "fstat(in)"
@@ -405,23 +428,28 @@ uint8_t sudogamesave(char *outname, sudogame *game) {
 	return 0;
 }
 
-void sudoprint(sudotracker *tracker) {
-	for (tracker->s_ypos = 0; tracker->s_ypos < 9; tracker->s_ypos++) {
-		for (tracker->s_xpos = 0; tracker->s_xpos < 9; tracker->s_xpos++) {
-			uint8_t gidx = __gridxy2idx(tracker->s_xpos, tracker->s_ypos);
+void __print_game(sudomap *map, sudotracker *tracker) {
+	uint8_t t_posx = 0;
+	uint8_t t_posy = 0;
+	for (t_posy = 0; t_posy < 9; t_posy++) {
+		for (t_posx = 0; t_posx < 9; t_posx++) {
+			uint8_t gidx = __gridxy2idx(t_posx, t_posy);
 			if (tracker->s_game->s_data[gidx] > 0) {
-				__sudogridputch(tracker->s_xpos, tracker->s_ypos, tracker->s_game->s_data[gidx] + 48);
+				__sudogridputch(t_posx, t_posy, tracker->s_game->s_data[gidx] + 48);
 				if (tracker->s_game->s_protmap[gidx]) {
-					mvchgat(__gypos2abs(tracker->s_ypos), __gxpos2abs(tracker->s_xpos), 1, A_REVERSE, 0, NULL);
-					refresh();
+					mvchgat(__gypos2abs(t_posy), __gxpos2abs(t_posx), 1, A_REVERSE, 0, NULL);
 				}
 			} else {
-				__sudogridputch(tracker->s_xpos, tracker->s_ypos, ' ');
+				__sudogridputch(t_posx, t_posy, ' ');
 			}
 		}
 	}
-	tracker->s_ypos = 0;
-	tracker->s_xpos = 0;
+	refresh();
+	mvprintw(BOX_CEN_Y + 19, BOX_CEN_X, "Game %hu/%hu", tracker->s_index + 1, map->s_count);
+	if (tracker->s_game->s_solvestatus) {
+		mvprintw(BOX_CEN_Y + 20, BOX_CEN_X, "Solved    ");
+	} else mvprintw(BOX_CEN_Y + 20, BOX_CEN_X, "Not solved");
+	__gridmove(tracker->s_xpos, tracker->s_ypos);
 }
 
 int main(int argc, char **argv) {
@@ -533,33 +561,9 @@ int main(int argc, char **argv) {
 	cbreak();
 	noecho();
 	keypad(stdscr, 1);
-	mvprintw(BOX_CEN_Y,      BOX_CEN_X, "%s", BOX_ROW_TOP);
-	mvprintw(BOX_CEN_Y + 1,  BOX_CEN_X, "%s", BOX_ROW_MID1);
-	mvprintw(BOX_CEN_Y + 2,  BOX_CEN_X, "%s", BOX_ROW_MID2);
-	mvprintw(BOX_CEN_Y + 3,  BOX_CEN_X, "%s", BOX_ROW_MID1);
-	mvprintw(BOX_CEN_Y + 4,  BOX_CEN_X, "%s", BOX_ROW_MID2);
-	mvprintw(BOX_CEN_Y + 5,  BOX_CEN_X, "%s", BOX_ROW_MID1);
-	mvprintw(BOX_CEN_Y + 6,  BOX_CEN_X, "%s", BOX_ROW_MID3);
-	mvprintw(BOX_CEN_Y + 7,  BOX_CEN_X, "%s", BOX_ROW_MID1);
-	mvprintw(BOX_CEN_Y + 8,  BOX_CEN_X, "%s", BOX_ROW_MID2);
-	mvprintw(BOX_CEN_Y + 9,  BOX_CEN_X, "%s", BOX_ROW_MID1);
-	mvprintw(BOX_CEN_Y + 10, BOX_CEN_X, "%s", BOX_ROW_MID2);
-	mvprintw(BOX_CEN_Y + 11, BOX_CEN_X, "%s", BOX_ROW_MID1);
-	mvprintw(BOX_CEN_Y + 12, BOX_CEN_X, "%s", BOX_ROW_MID3);
-	mvprintw(BOX_CEN_Y + 13, BOX_CEN_X, "%s", BOX_ROW_MID1);
-	mvprintw(BOX_CEN_Y + 14, BOX_CEN_X, "%s", BOX_ROW_MID2);
-	mvprintw(BOX_CEN_Y + 15, BOX_CEN_X, "%s", BOX_ROW_MID1);
-	mvprintw(BOX_CEN_Y + 16, BOX_CEN_X, "%s", BOX_ROW_MID2);
-	mvprintw(BOX_CEN_Y + 17, BOX_CEN_X, "%s", BOX_ROW_MID1);
-	mvprintw(BOX_CEN_Y + 18, BOX_CEN_X, "%s", BOX_ROW_BOT);
-	refresh();
 	sudotracker tracker = { &(map.s_games[0]), 0, 0, 0 };
-	sudoprint(&tracker);
-	mvprintw(BOX_CEN_Y + 19, BOX_CEN_X, "Game 1/%hu", map.s_count);
-	if (tracker.s_game->s_solvestatus) {
-		mvprintw(BOX_CEN_Y + 20, BOX_CEN_X, "Solved    ");
-	} else mvprintw(BOX_CEN_Y + 20, BOX_CEN_X, "Not solved");
-	__gridmove(tracker.s_xpos, tracker.s_ypos);
+	__draw_box(&tracker);
+	__print_game(&map, &tracker);
 	TIMER_TID = 0;
 	CHECK_TID = 0;
 	uint8_t esave = 0;
@@ -613,12 +617,7 @@ int main(int argc, char **argv) {
 			if (esave) break;
 			tracker.s_index++;
 			tracker.s_game = &(map.s_games[tracker.s_index]);
-			sudoprint(&tracker);
-			mvprintw(BOX_CEN_Y + 19, BOX_CEN_X, "Game %hu/%hu", tracker.s_index + 1, map.s_count);
-			if (tracker.s_game->s_solvestatus) {
-				mvprintw(BOX_CEN_Y + 20, BOX_CEN_X, "Solved    ");
-			} else mvprintw(BOX_CEN_Y + 20, BOX_CEN_X, "Not solved");
-			__gridmove(tracker.s_xpos, tracker.s_ypos);
+			__print_game(&map, &tracker);
 			pthread_create(&TIMER_TID, 0, &thr_timer, (void *) &tracker);
 			pthread_detach(TIMER_TID);
 		} else if (ch == KEY_LEFT) {
@@ -628,12 +627,7 @@ int main(int argc, char **argv) {
 			if (esave) break;
 			tracker.s_index--;
 			tracker.s_game = &(map.s_games[tracker.s_index]);
-			sudoprint(&tracker);
-			mvprintw(BOX_CEN_Y + 19, BOX_CEN_X, "Game %hu/%hu", tracker.s_index + 1, map.s_count);
-			if (tracker.s_game->s_solvestatus) {
-				mvprintw(BOX_CEN_Y + 20, BOX_CEN_X, "Solved    ");
-			} else mvprintw(BOX_CEN_Y + 20, BOX_CEN_X, "Not solved");
-			__gridmove(tracker.s_xpos, tracker.s_ypos);
+			__print_game(&map, &tracker);
 			pthread_create(&TIMER_TID, 0, &thr_timer, (void *) &tracker);
 			pthread_detach(TIMER_TID);
 		}
