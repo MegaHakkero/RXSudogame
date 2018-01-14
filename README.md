@@ -31,7 +31,7 @@ I know, I know. qqwing has a library. I just didn't realise that before I alread
 You probably don't wanna read anymore half-useless jargon, so I'll just show you how to use the program.
 
 ### Generating and loading sudomaps
-Now, you can't just start playing right after you've compiled this, you'll have to create a sudomap first (more about sudomaps in the `About that file format` section.<br>
+Now, you can't just start playing right after you've compiled this, you'll have to create a sudomap first (more about sudomaps in the `About that file format` section)<br>
 To generate a sudomap, you can type
 ```sh
 rxsudogame generate <count> <output name>
