@@ -7,13 +7,13 @@ I became really good at playing sudoku with my ages old Nokia brick phone (sudok
 Yeah, I know, I have a pretty boring life.
 
 ## Compilation, dependencies etc.
-I've used some POSIX features as well as some other UNIX-only features in my program, so this doesn't compile on Windows because it doesn't have any of said features.<br>
+I've used some POSIX features as well as some UNIX-only features in my program, so this doesn't compile on Windows.<br>
 To compile this, I use
 ```sh
 gcc main.c -Wall -std=gnu11 -ltinfo -lncurses -pthread -o rxsudogame
 ```
-but `-std=gnu99` would probably work too. I just have a really new GCC.<br>
-Note that even though there's no other compile-time dependencies, you need a program called [qqwing](https://qqwing.com/download.html "qqwing downloads") installed on your system to actually generate sudokus with my program, otherwise you'll just get an error while trying to do it. On Manjaro and Arch Linux, you can install it with
+but `-std=gnu99` would probably work too. I just have a new GCC.<br>
+Note that even though there's no other compile-time dependencies, you need [qqwing](https://qqwing.com/download.html "qqwing downloads") installed on your system to actually generate games with my program, otherwise you'll just get a pipe open error. On Arch-based systems, you can install it with
 ```sh
 sudo pacman -S qqwing
 ```
@@ -25,18 +25,18 @@ does the trick. I think some BSDs have a package for it as well, you can try ins
 ```sh
 sudo pkg install qqwing
 ```
-I know, I know. qqwing has a library. I just didn't realise that before I already wrote the function for generating sudoku files. By the way, if you can't find qqwing in your package manager's repositories, you can just download the source code from that link up top and compile it. They have their own instructions for that.
+I know qqwing has a library, I just didn't realise that before I already wrote the function responsible for generating games. By the way, if you can't find qqwing in your package manager's repositories, you can just download the source code from that link up top and compile it. They have their own instructions for that.
 
 ## Instructions
-You probably don't wanna read anymore half-useless jargon, so I'll just show you how to use the program.
+You probably don't wanna read anymore half-useless crap, so I'll just show you how to use the program.
 
 ### Generating and loading sudomaps
-Now, you can't just start playing right after you've compiled this, you'll have to create a sudomap first (more about sudomaps in the `About that file format` section)<br>
+You can't just start playing right after you've compiled this, you'll have to create a sudomap first (more about those in the `About that file format` section)<br>
 To generate a sudomap, you can type
 ```sh
 rxsudogame generate <count> <output name>
 ```
-Just replace `<count>` with the number of games you want to include in the output file and replace `<output name>` with a file name of your choice. Just be sure not to type in an existing file's name, this program will overwrite it without prompting you. I was too lazy to add a check for that, lol<br>
+where `<count>` is the number of games you want to generate in the output file and `<output name>` is the name of the generated file. Just be sure not to type in an existing file's name, this program will overwrite it without prompting you. I was too lazy to write a check for that, so I should probably add the BSD license to this...<br>
 So, now that you have a game generated, you can load it and start playing. Just type in
 ```sh
 rxsudogame load <input file>
@@ -58,18 +58,18 @@ The controls are also easy to get:
 ```
 
 ## About that file format
-You might've noticed that `+ file format` part in the beginning of this file, and if so, good - you can read. Basically, in order to have a leveled sudoku system, I had to create some kind of format to store many games in one file so that the player would have some way to manage their games and this was my solution; a simple binary format called `sudomap`. Below I've written down details about it's structure, so you can maybe write support for it in your own sudoku program? (I'd be honored!)
+You might've noticed that `+ file format` part in the beginning of this, and if so, you've proved your ability to read. Basically, in order to have a leveled sudoku system, I had to create some kind of format to store many games in one file so that the player would have some way to manage their games and this was my solution; a simple binary format, `sudomap`. Below I've written down details about it's structure, so you can maybe write programs for it yourself? (I'd be glad uwu)
 
 ### Header
-I don't really know if I should even call this a proper header, it's basically just two actual fields, one of which is a signature.
+Basically just two actual fields, one of which is a signature.
 ```md
-1. Signature - char[6] - a null-terminated string that acts as a way for programs to verify the file format. This should always be equal to "RXDSF".
+1. Signature - char[6] - a null-terminated string that acts as a way for programs to verify the file format. This should always be equal to "RXDSM".
 2. Count - uint16_t - the amount of sudokus in the file
 3. Entry separator - uint8_t - separates the sudoku entries from the header. This should always be equal to 0xFF.
 ```
 
 ### Sudoku entry / sudogame
-These are the actual things you'll be loading into memory in the program. Pretty straight-forward.
+These are the actual things you'll be loading into memory.
 ```md
 1. Data - uint8_t[81] - the actual game data that the player should be able to modify.
 2. Protectmap separator - uint8_t - separates the Data and Protectmap fields. Should always be equal to 0xFC
