@@ -10,7 +10,7 @@
 #include <pthread.h>
 #include <sys/stat.h>
 
-#define SUDOSIGN "RXDSF"
+#define SUDOSIGN "RXDSM"
 
 #define CP_WRONG 1
 
