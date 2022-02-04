@@ -195,6 +195,7 @@ void *thr_check(void *arg) {
 			pthread_mutex_unlock(&CHECK_MUTEX);
 		}
 	}
+	//.
 	__gridmove(sudo->s_xpos, sudo->s_ypos);
 	sleep(2);
 	for (pos_y = 0; pos_y < 9; pos_y++) {
